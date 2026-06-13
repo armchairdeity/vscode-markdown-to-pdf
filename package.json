@@ -101,7 +101,7 @@
         "rypka-hauer.markdownToPdf.stylesheet": {
           "type": "string",
           "default": "github",
-          "markdownDescription": "Base stylesheet applied before printing. Use a built-in name (`github`, `none`) or an absolute path to a custom `.css` file."
+          "markdownDescription": "Base stylesheet applied before printing. Use a built-in name (`github`, `none`), an absolute path to a custom `.css` file, or an `https://` URL."
         },
         "rypka-hauer.markdownToPdf.output.overwrite": {
           "type": "string",

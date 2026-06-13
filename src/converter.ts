@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { get as httpsGet } from 'https';
+import { get as httpGet } from 'http';
 import matter from 'gray-matter';
 import { marked, Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
@@ -39,6 +41,18 @@ function readBundledCss(relativePath: string): string {
   } catch {
     return '';
   }
+}
+
+function fetchUrlCss(url: string): Promise<string> {
+  return new Promise((resolve) => {
+    const get = url.startsWith('https') ? httpsGet : httpGet;
+    get(url, (res) => {
+      if (res.statusCode !== 200) { resolve(''); return; }
+      const chunks: Buffer[] = [];
+      res.on('data', (c: Buffer) => chunks.push(c));
+      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    }).on('error', () => resolve(''));
+  });
 }
 
 function getMarkdownCss(stylesheet: string): string {
@@ -104,7 +118,7 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function buildHtml(markdownContent: string, settings: Settings): string {
+function buildHtml(markdownContent: string, settings: Settings, fetchedCss?: string): string {
   // Configure marked with GFM + optional highlight.js
   const markedOptions = settings.codeBlocks.enabled
     ? [
@@ -129,7 +143,7 @@ function buildHtml(markdownContent: string, settings: Settings): string {
       ? renderFrontMatter(fmData, settings.frontMatter.style)
       : '';
 
-  const markdownCss = getMarkdownCss(settings.stylesheet);
+  const markdownCss = fetchedCss ?? getMarkdownCss(settings.stylesheet);
   const highlightCss = settings.codeBlocks.enabled ? getHighlightCss(settings.codeBlocks.theme) : '';
 
   return `<!DOCTYPE html>
@@ -185,8 +199,17 @@ export async function convertToPdf(
 ): Promise<void> {
   const sourceDir = path.dirname(inputPath);
   const markdownContent = fs.readFileSync(inputPath, 'utf8');
-  let html = buildHtml(markdownContent, settings);
 
+  // Fetch remote stylesheet if the setting is an http/https URL.
+  const fetchedCss = /^https?:\/\//i.test(settings.stylesheet)
+    ? await fetchUrlCss(settings.stylesheet)
+    : undefined;
+
+  let html = buildHtml(markdownContent, settings, fetchedCss);
+
+  // When true, rewrites relative src attributes to absolute file:// URIs.
+  // When false, relative images may still load because the temp HTML is
+  // written alongside the source file — the browser resolves them naturally.
   if (settings.images.resolveRelativePaths) {
     html = resolveImagePaths(html, sourceDir);
   }

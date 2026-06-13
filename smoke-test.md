@@ -11,19 +11,17 @@ This file exercises every major feature of the extension.
 
 ## Front Matter
 
-The YAML block above should appear as a styled box at the top of the PDF when
-`frontMatter.render` is enabled in settings.
+The YAML block above should appear as a styled box at the top of the PDF when `frontMatter.render` is enabled in settings.
 
 ## Relative Image
 
-The image below should render (not be broken) when `images.resolveRelativePaths`
-is active — it lives alongside this `.md` file.
+The image below should render (not be broken) when `images.resolveRelativePaths` is active — it lives alongside this `.md` file.
 
-![Test image](./test-image.png)
+![ If you can see this, it didn't work or relative path resolution is deactivated.](./test-image.png)
 
 ## Inline Formatting
 
-Plain text, **bold**, *italic*, ***bold-italic***, `inline code`, and ~~strikethrough~~.
+Plain text, **bold**, _italic_, **_bold-italic_**, `inline code`, and ~~strikethrough~~.
 
 A [hyperlink](https://www.example.com) and an auto-link: <https://www.example.com>.
 
@@ -35,13 +33,13 @@ A [hyperlink](https://www.example.com) and an auto-link: <https://www.example.co
 
 ## Tables (GFM)
 
-| Feature            | Status  | Notes                          |
-| ------------------ | ------- | ------------------------------ |
-| Front matter       | ✅       | gray-matter v4                 |
-| GFM tables         | ✅       | marked v12 + GFM flag          |
-| Syntax highlighting | ✅      | highlight.js v11               |
-| Relative images    | ✅       | temp HTML written alongside MD |
-| Custom page size   | ✅       | Letter / A4 / Legal            |
+| Feature             | Status | Notes                          |
+| ------------------- | ------ | ------------------------------ |
+| Front matter        | ✅     | gray-matter v4                 |
+| GFM tables          | ✅     | marked v12 + GFM flag          |
+| Syntax highlighting | ✅     | highlight.js v11               |
+| Relative images     | ✅     | temp HTML written alongside MD |
+| Custom page size    | ✅     | Letter / A4 / Legal            |
 
 ## Code Blocks
 
@@ -49,16 +47,16 @@ TypeScript with syntax highlighting:
 
 ```typescript
 interface ExportOptions {
-  outputPath: string;
-  openAfterExport: boolean;
+	outputPath: string
+	openAfterExport: boolean
 }
 
 async function exportMarkdown(options: ExportOptions): Promise<void> {
-  const { outputPath, openAfterExport } = options;
-  await convertToPdf(inputPath, outputPath, getSettings());
-  if (openAfterExport) {
-    vscode.env.openExternal(vscode.Uri.file(outputPath));
-  }
+	const { outputPath, openAfterExport } = options
+	await convertToPdf(inputPath, outputPath, getSettings())
+	if (openAfterExport) {
+		vscode.env.openExternal(vscode.Uri.file(outputPath))
+	}
 }
 ```
 
@@ -76,9 +74,9 @@ JSON:
 
 ```json
 {
-  "rypka-hauer.markdownToPdf.page.size": "Letter",
-  "rypka-hauer.markdownToPdf.codeBlocks.theme": "github-dark",
-  "rypka-hauer.markdownToPdf.output.openAfterExport": true
+	"rypka-hauer.markdownToPdf.page.size": "Letter",
+	"rypka-hauer.markdownToPdf.codeBlocks.theme": "github-dark",
+	"rypka-hauer.markdownToPdf.output.openAfterExport": true
 }
 ```
 
@@ -106,12 +104,17 @@ JSON:
 ## Heading Levels
 
 # H1 — Document Title
+
 ## H2 — Major Section
+
 ### H3 — Subsection
+
 #### H4 — Minor Section
+
 ##### H5
+
 ###### H6
 
 ---
 
-*End of smoke test.*
+_End of smoke test._
