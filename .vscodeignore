@@ -1,0 +1,12 @@
+.vscode/**
+src/**
+.gitignore
+tsconfig.json
+esbuild.mjs
+**/*.map
+node_modules/esbuild/**
+node_modules/typescript/**
+node_modules/@types/**
+node_modules/@vscode/vsce/**
+smoke-test.md
+test-image.png

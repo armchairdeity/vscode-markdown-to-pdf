@@ -1,0 +1,151 @@
+{
+  "name": "markdown-to-pdf",
+  "displayName": "Markdown to PDF",
+  "description": "Export Markdown files to PDF with GFM, syntax-highlighted code blocks, YAML front matter support, and configurable output.",
+  "version": "0.1.0",
+  "publisher": "rypka-hauer",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armchairdeity/vscode-markdown-to-pdf"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rypka-hauer.markdownToPdf.export",
+        "title": "Export to PDF",
+        "category": "Markdown to PDF",
+        "icon": "$(export)"
+      },
+      {
+        "command": "rypka-hauer.markdownToPdf.exportAs",
+        "title": "Export to PDF As…",
+        "category": "Markdown to PDF",
+        "icon": "$(save-as)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "rypka-hauer.markdownToPdf.export",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@1"
+        },
+        {
+          "command": "rypka-hauer.markdownToPdf.exportAs",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "rypka-hauer.markdownToPdf.export",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@1"
+        },
+        {
+          "command": "rypka-hauer.markdownToPdf.exportAs",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Markdown to PDF",
+      "properties": {
+        "rypka-hauer.markdownToPdf.codeBlocks.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable syntax highlighting in fenced code blocks."
+        },
+        "rypka-hauer.markdownToPdf.codeBlocks.theme": {
+          "type": "string",
+          "default": "github",
+          "enum": ["github", "github-dark", "atom-one-dark", "monokai", "vs2015", "dracula", "nord"],
+          "description": "Highlight.js theme used for code block syntax highlighting."
+        },
+        "rypka-hauer.markdownToPdf.frontMatter.render": {
+          "type": "boolean",
+          "default": false,
+          "description": "Render YAML front matter in the PDF. When false, front matter is stripped silently."
+        },
+        "rypka-hauer.markdownToPdf.frontMatter.style": {
+          "type": "string",
+          "default": "metadata-box",
+          "enum": ["metadata-box", "table", "code-block"],
+          "enumDescriptions": [
+            "Styled key/value box at the top of the document",
+            "HTML table of front matter fields",
+            "Syntax-highlighted YAML code block"
+          ],
+          "description": "How to render YAML front matter when rypka-hauer.markdownToPdf.frontMatter.render is enabled."
+        },
+        "rypka-hauer.markdownToPdf.page.size": {
+          "type": "string",
+          "default": "Letter",
+          "enum": ["Letter", "A4", "Legal"],
+          "description": "Output paper size."
+        },
+        "rypka-hauer.markdownToPdf.page.margins": {
+          "type": "string",
+          "default": "normal",
+          "enum": ["normal", "narrow", "wide", "none"],
+          "description": "Page margins in the exported PDF."
+        },
+        "rypka-hauer.markdownToPdf.stylesheet": {
+          "type": "string",
+          "default": "github",
+          "markdownDescription": "Base stylesheet applied before printing. Use a built-in name (`github`, `none`) or an absolute path to a custom `.css` file."
+        },
+        "rypka-hauer.markdownToPdf.output.overwrite": {
+          "type": "string",
+          "default": "overwrite",
+          "enum": ["overwrite", "prompt", "increment"],
+          "enumDescriptions": [
+            "Silently overwrite an existing PDF",
+            "Ask before overwriting an existing PDF",
+            "Append a numeric suffix when the output file already exists (e.g. document-1.pdf)"
+          ],
+          "description": "Behavior when the output PDF already exists."
+        },
+        "rypka-hauer.markdownToPdf.output.openAfterExport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the exported PDF in the system default viewer."
+        },
+        "rypka-hauer.markdownToPdf.images.resolveRelativePaths": {
+          "type": "boolean",
+          "default": true,
+          "description": "Resolve image paths relative to the source Markdown file's directory."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "node esbuild.mjs --production && vsce package",
+    "vscode:prepublish": "node esbuild.mjs --production"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "highlight.js": "^11.9.0",
+    "marked": "^12.0.0",
+    "marked-highlight": "^2.1.3",
+    "github-markdown-css": "^5.5.1",
+    "puppeteer": "^24.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^2.26.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}
