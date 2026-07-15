@@ -1,5 +1,5 @@
 {
-  "name": "markdown-to-pdf",
+  "name": "markdown-to-pdf-shiki",
   "displayName": "Markdown to PDF",
   "description": "Export Markdown files to PDF with GFM, syntax-highlighted code blocks, YAML front matter support, and configurable output.",
   "version": "0.2.0",
