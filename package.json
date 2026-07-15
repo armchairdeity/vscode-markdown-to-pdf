@@ -1,7 +1,7 @@
 {
   "name": "markdown-to-pdf-shiki",
   "displayName": "Markdown to PDF (Shiki)",
-  "description": "Export Markdown files to PDF with GFM, syntax-highlighted code blocks, YAML front matter support, and configurable output.",
+  "description": "Export Markdown to PDF with editor-accurate, Shiki-highlighted code blocks (VS Code themes & grammars), GitHub-flavored Markdown, YAML front matter, and configurable page & output options.",
   "version": "0.2.0",
   "publisher": "rypka-hauer",
   "engines": {
