@@ -5,6 +5,12 @@ All notable changes to **Markdown to PDF (Shiki)** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1]
+
+### Changed
+- Documentation and Marketplace listing polish (sharpened description, added changelog).
+  No functional changes.
+
 ## [0.2.0]
 
 ### Added
@@ -40,5 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable page size, margins, base stylesheet (built-in, custom file, or URL),
   overwrite behavior, and open-after-export.
 
+[0.2.1]: https://github.com/armchairdeity/vscode-markdown-to-pdf/releases/tag/v0.2.1
 [0.2.0]: https://github.com/armchairdeity/vscode-markdown-to-pdf/releases/tag/v0.2.0
 [0.1.0]: https://github.com/armchairdeity/vscode-markdown-to-pdf/releases/tag/v0.1.0
