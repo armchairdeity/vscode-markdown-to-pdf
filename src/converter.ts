@@ -4,9 +4,38 @@ import { get as httpsGet } from 'https';
 import { get as httpGet } from 'http';
 import matter from 'gray-matter';
 import { marked, Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js';
 import type { Settings } from './settings';
+
+// Shiki is ESM-only, so it is kept external (see esbuild.mjs) and loaded via a
+// native dynamic import() that esbuild preserves in the CJS bundle. Shiki uses
+// the same TextMate grammars and VS Code theme files that VS Code itself ships,
+// so exported code blocks match the editor. Its output is self-contained HTML
+// with inline colors/background — no separate highlight stylesheet is needed.
+type Shiki = typeof import('shiki');
+let shikiPromise: Promise<Shiki> | undefined;
+function loadShiki(): Promise<Shiki> {
+  return (shikiPromise ??= import('shiki'));
+}
+
+const FALLBACK_THEME = 'github-light';
+
+async function highlightCode(code: string, lang: string | undefined, theme: string): Promise<string> {
+  const { codeToHtml, bundledLanguages } = await loadShiki();
+  const requested = lang?.toLowerCase().trim();
+  const language = requested && requested in bundledLanguages ? requested : 'text';
+  for (const attempt of [
+    { lang: language, theme },
+    { lang: 'text', theme },
+    { lang: 'text', theme: FALLBACK_THEME },
+  ]) {
+    try {
+      return await codeToHtml(code, attempt);
+    } catch {
+      // try the next, progressively safer, combination
+    }
+  }
+  return `<pre class="shiki"><code>${escapeHtml(code)}</code></pre>`;
+}
 
 const MARGINS: Record<string, { top: string; right: string; bottom: string; left: string }> = {
   normal: { top: '1in',    right: '1in',    bottom: '1in',    left: '1in'    },
@@ -66,21 +95,16 @@ function getMarkdownCss(stylesheet: string): string {
   return '';
 }
 
-function getHighlightCss(theme: string): string {
-  // Normalise theme name: spaces → hyphens, lowercase
-  const name = theme.toLowerCase().replace(/\s+/g, '-');
-  return readBundledCss(`highlight.js/styles/${name}.css`);
+function frontMatterYaml(data: Record<string, unknown>): string {
+  return Object.entries(data)
+    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+    .join('\n');
 }
 
+// Renders the `table` and `metadata-box` front-matter styles. The `code-block`
+// style is handled separately in buildHtml because it needs async Shiki.
 function renderFrontMatter(data: Record<string, unknown>, style: string): string {
   switch (style) {
-    case 'code-block': {
-      const yaml = Object.entries(data)
-        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
-        .join('\n');
-      const highlighted = hljs.highlight(yaml, { language: 'yaml' }).value;
-      return `<pre><code class="hljs language-yaml">${highlighted}</code></pre>`;
-    }
     case 'table': {
       const rows = Object.entries(data)
         .map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(String(v))}</td></tr>`)
@@ -118,33 +142,51 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function buildHtml(markdownContent: string, settings: Settings, fetchedCss?: string): string {
-  // Configure marked with GFM + optional highlight.js
-  const markedOptions = settings.codeBlocks.enabled
-    ? [
-        markedHighlight({
-          langPrefix: 'hljs language-',
-          highlight(code, lang) {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-          },
-        }),
-      ]
-    : [];
+const CODE_PLACEHOLDER = (i: number) => `<!--MDPDF-CODE-${i}-->`;
 
-  const renderer = new marked.Renderer();
-  const instance = new Marked({ gfm: true }, ...markedOptions, { renderer });
-
+async function buildHtml(
+  markdownContent: string,
+  settings: Settings,
+  fetchedCss?: string
+): Promise<string> {
   const { data: fmData, content: mdContent } = matter(markdownContent);
 
-  const bodyHtml = instance.parse(mdContent) as string;
-  const fmHtml =
-    settings.frontMatter.render && Object.keys(fmData).length > 0
-      ? renderFrontMatter(fmData, settings.frontMatter.style)
-      : '';
+  // Collect fenced code blocks during a synchronous parse, emitting a
+  // placeholder for each, then highlight them asynchronously with Shiki and
+  // splice the results back in. This keeps marked's renderer synchronous while
+  // still allowing Shiki's async, self-contained HTML output.
+  const codeBlocks: { code: string; lang?: string }[] = [];
+  const renderer = new marked.Renderer();
+  if (settings.codeBlocks.enabled) {
+    renderer.code = (code: unknown, infostring?: unknown): string => {
+      // marked v12 passes (code, infostring); guard for token-object forms too.
+      const text = typeof code === 'string' ? code : String((code as { text?: string })?.text ?? '');
+      const info = typeof code === 'string' ? infostring : (code as { lang?: string })?.lang;
+      const lang = String(info ?? '').trim().split(/\s+/)[0] || undefined;
+      const idx = codeBlocks.push({ code: text, lang }) - 1;
+      return `\n${CODE_PLACEHOLDER(idx)}\n`;
+    };
+  }
+
+  const instance = new Marked({ gfm: true }, { renderer });
+  let bodyHtml = instance.parse(mdContent) as string;
+
+  if (settings.codeBlocks.enabled && codeBlocks.length > 0) {
+    const rendered = await Promise.all(
+      codeBlocks.map((b) => highlightCode(b.code, b.lang, settings.codeBlocks.theme))
+    );
+    bodyHtml = bodyHtml.replace(/<!--MDPDF-CODE-(\d+)-->/g, (_, i) => rendered[Number(i)] ?? '');
+  }
+
+  let fmHtml = '';
+  if (settings.frontMatter.render && Object.keys(fmData).length > 0) {
+    fmHtml =
+      settings.frontMatter.style === 'code-block'
+        ? await highlightCode(frontMatterYaml(fmData), 'yaml', settings.codeBlocks.theme)
+        : renderFrontMatter(fmData, settings.frontMatter.style);
+  }
 
   const markdownCss = fetchedCss ?? getMarkdownCss(settings.stylesheet);
-  const highlightCss = settings.codeBlocks.enabled ? getHighlightCss(settings.codeBlocks.theme) : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -152,7 +194,6 @@ function buildHtml(markdownContent: string, settings: Settings, fetchedCss?: str
 <meta charset="UTF-8">
 <style>
 ${markdownCss}
-${highlightCss}
 body {
   box-sizing: border-box;
   min-width: 200px;
@@ -183,6 +224,21 @@ table { font-size: 12px; }
 .markdown-body table th,
 .markdown-body table td { padding: 3px 8px; }
 td, th { overflow-wrap: break-word; }
+/* Shiki code blocks: self-contained inline colors/background. Wrap long lines
+   so nothing is clipped off the printable page width. */
+.markdown-body pre.shiki {
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 85%;
+  line-height: 1.45;
+}
+.markdown-body pre.shiki code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: transparent;
+  padding: 0;
+}
 </style>
 </head>
 <body class="markdown-body">
@@ -192,10 +248,15 @@ ${bodyHtml}
 </html>`;
 }
 
+// Resolves and launches a browser. Injected by the caller (see browser.ts) so
+// the converter stays independent of how Chromium is located or downloaded.
+export type LaunchBrowser = () => Promise<import('puppeteer').Browser>;
+
 export async function convertToPdf(
   inputPath: string,
   outputPath: string,
-  settings: Settings
+  settings: Settings,
+  launchBrowser: LaunchBrowser
 ): Promise<void> {
   const sourceDir = path.dirname(inputPath);
   const markdownContent = fs.readFileSync(inputPath, 'utf8');
@@ -205,7 +266,7 @@ export async function convertToPdf(
     ? await fetchUrlCss(settings.stylesheet)
     : undefined;
 
-  let html = buildHtml(markdownContent, settings, fetchedCss);
+  let html = await buildHtml(markdownContent, settings, fetchedCss);
 
   // When true, rewrites relative src attributes to absolute file:// URIs.
   // When false, relative images may still load because the temp HTML is
@@ -218,8 +279,7 @@ export async function convertToPdf(
   fs.writeFileSync(tempHtml, html, 'utf8');
 
   try {
-    const puppeteer = await import('puppeteer');
-    const browser = await puppeteer.default.launch({ headless: true });
+    const browser = await launchBrowser();
     try {
       const page = await browser.newPage();
 

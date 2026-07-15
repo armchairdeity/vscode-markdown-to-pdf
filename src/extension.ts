@@ -2,15 +2,17 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { convertToPdf } from './converter';
+import { createBrowserLauncher } from './browser';
 import { getSettings } from './settings';
 
 export function activate(context: vscode.ExtensionContext): void {
+  const launchBrowser = createBrowserLauncher(context);
   context.subscriptions.push(
     vscode.commands.registerCommand('rypka-hauer.markdownToPdf.export', (uri?: vscode.Uri) =>
-      runExport(uri, false)
+      runExport(uri, false, launchBrowser)
     ),
     vscode.commands.registerCommand('rypka-hauer.markdownToPdf.exportAs', (uri?: vscode.Uri) =>
-      runExport(uri, true)
+      runExport(uri, true, launchBrowser)
     )
   );
 }
@@ -50,7 +52,11 @@ function resolvedIncrementPath(outputPath: string): string {
   return `${base}-${i}${ext}`;
 }
 
-async function runExport(uri: vscode.Uri | undefined, saveAs: boolean): Promise<void> {
+async function runExport(
+  uri: vscode.Uri | undefined,
+  saveAs: boolean,
+  launchBrowser: import('./converter').LaunchBrowser
+): Promise<void> {
   const inputPath = await resolveInputPath(uri);
   if (!inputPath) {
     vscode.window.showErrorMessage('No Markdown file is active or selected.');
@@ -82,7 +88,7 @@ async function runExport(uri: vscode.Uri | undefined, saveAs: boolean): Promise<
     { location: vscode.ProgressLocation.Notification, title: `Exporting ${label} to PDF…`, cancellable: false },
     async () => {
       try {
-        await convertToPdf(inputPath, outputPath!, settings);
+        await convertToPdf(inputPath, outputPath!, settings, launchBrowser);
         const pdfName = path.basename(outputPath!);
 
         if (settings.output.openAfterExport) {

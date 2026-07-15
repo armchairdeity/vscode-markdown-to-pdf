@@ -2,17 +2,27 @@
   "name": "markdown-to-pdf",
   "displayName": "Markdown to PDF",
   "description": "Export Markdown files to PDF with GFM, syntax-highlighted code blocks, YAML front matter support, and configurable output.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "rypka-hauer",
   "engines": {
     "vscode": "^1.90.0"
   },
   "license": "MIT",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/armchairdeity/vscode-markdown-to-pdf"
   },
-  "categories": ["Other"],
+  "bugs": {
+    "url": "https://github.com/armchairdeity/vscode-markdown-to-pdf/issues"
+  },
+  "homepage": "https://github.com/armchairdeity/vscode-markdown-to-pdf#readme",
+  "categories": ["Other", "Formatters"],
+  "keywords": ["markdown", "pdf", "export", "convert", "gfm", "shiki"],
+  "galleryBanner": {
+    "color": "#1E3A6B",
+    "theme": "dark"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -66,9 +76,27 @@
         },
         "rypka-hauer.markdownToPdf.codeBlocks.theme": {
           "type": "string",
-          "default": "github",
-          "enum": ["github", "github-dark", "atom-one-dark", "monokai", "vs2015", "dracula", "nord"],
-          "description": "Highlight.js theme used for code block syntax highlighting."
+          "default": "github-light",
+          "enum": [
+            "github-light",
+            "github-dark",
+            "light-plus",
+            "dark-plus",
+            "one-light",
+            "one-dark-pro",
+            "dracula",
+            "nord",
+            "monokai",
+            "solarized-light",
+            "solarized-dark",
+            "catppuccin-latte",
+            "catppuccin-mocha",
+            "vitesse-light",
+            "vitesse-dark",
+            "min-light",
+            "min-dark"
+          ],
+          "markdownDescription": "Theme for code block syntax highlighting. Uses the same TextMate grammars and VS Code themes the editor ships, via [Shiki](https://shiki.style). `light-plus`/`dark-plus` are the built-in VS Code Light+/Dark+ themes."
         },
         "rypka-hauer.markdownToPdf.frontMatter.render": {
           "type": "boolean",
@@ -135,11 +163,11 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "highlight.js": "^11.9.0",
     "marked": "^12.0.0",
-    "marked-highlight": "^2.1.3",
     "github-markdown-css": "^5.5.1",
-    "puppeteer": "^24.0.0"
+    "shiki": "^1.29.0",
+    "puppeteer": "^24.0.0",
+    "@puppeteer/browsers": "^2.13.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -10,3 +10,5 @@ node_modules/@types/**
 node_modules/@vscode/vsce/**
 smoke-test.md
 test-image.png
+icon.svg
+**/*.pdf

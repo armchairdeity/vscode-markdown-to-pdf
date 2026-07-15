@@ -1,6 +1,8 @@
 # Markdown to PDF
 
-A VS Code extension that exports Markdown files to PDF with GitHub-flavored Markdown rendering, syntax-highlighted code blocks, YAML front matter support, and configurable output.
+A VS Code extension that exports Markdown files to PDF with GitHub-flavored Markdown rendering, editor-accurate syntax-highlighted code blocks, YAML front matter support, and configurable output.
+
+Code blocks are highlighted with [Shiki](https://shiki.style), which uses the same TextMate grammars and VS Code themes the editor itself ships — so your exported code looks like it does in VS Code, across hundreds of languages and popular themes (including the built-in **Light+** / **Dark+**).
 
 ## Usage
 
@@ -16,7 +18,7 @@ A VS Code extension that exports Markdown files to PDF with GitHub-flavored Mark
 | Setting | Default | Description |
 |---|---|---|
 | `codeBlocks.enabled` | `true` | Syntax-highlight fenced code blocks |
-| `codeBlocks.theme` | `github` | highlight.js theme (`github`, `github-dark`, `atom-one-dark`, `monokai`, `vs2015`, `dracula`, `nord`) |
+| `codeBlocks.theme` | `github-light` | Shiki/VS Code theme: `github-light`, `github-dark`, `light-plus`, `dark-plus`, `one-light`, `one-dark-pro`, `dracula`, `nord`, `monokai`, `solarized-light`, `solarized-dark`, `catppuccin-latte`, `catppuccin-mocha`, `vitesse-light`, `vitesse-dark`, `min-light`, `min-dark` |
 | `frontMatter.render` | `false` | Include YAML front matter in the PDF |
 | `frontMatter.style` | `metadata-box` | Front matter style: `metadata-box`, `table`, or `code-block` |
 | `page.size` | `Letter` | Paper size: `Letter`, `A4`, or `Legal` |
@@ -32,7 +34,7 @@ All settings are under the `rypka-hauer.markdownToPdf` namespace.
 
 - [Puppeteer](https://pptr.dev/) (bundled Chromium) — PDF rendering
 - [marked](https://marked.js.org/) v12 — Markdown parsing (GFM)
-- [highlight.js](https://highlightjs.org/) v11 — Code block syntax highlighting
+- [Shiki](https://shiki.style/) — Code block syntax highlighting with VS Code grammars & themes
 - [gray-matter](https://github.com/jonschlinkert/gray-matter) — YAML front matter parsing
 - [github-markdown-css](https://github.com/sindresorhus/github-markdown-css) — Default stylesheet
 

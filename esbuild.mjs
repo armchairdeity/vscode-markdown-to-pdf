@@ -7,8 +7,11 @@ const buildOptions = {
   entryPoints: ['src/extension.ts'],
   bundle: true,
   outfile: 'dist/extension.js',
-  // vscode and puppeteer stay in node_modules at runtime
-  external: ['vscode', 'puppeteer'],
+  // These stay in node_modules at runtime rather than being bundled:
+  //  - vscode: provided by the extension host
+  //  - puppeteer / @puppeteer/browsers: heavy; loaded via dynamic import (browser.ts)
+  //  - shiki: ESM-only; loaded via a preserved dynamic import (converter.ts)
+  external: ['vscode', 'puppeteer', '@puppeteer/browsers', 'shiki'],
   format: 'cjs',
   platform: 'node',
   target: 'node18',

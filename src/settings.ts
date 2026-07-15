@@ -28,7 +28,7 @@ export function getSettings(): Settings {
   return {
     codeBlocks: {
       enabled: cfg.get('codeBlocks.enabled', true),
-      theme: cfg.get('codeBlocks.theme', 'github'),
+      theme: cfg.get('codeBlocks.theme', 'github-light'),
     },
     frontMatter: {
       render: cfg.get('frontMatter.render', false),
